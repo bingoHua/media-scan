@@ -1,0 +1,13 @@
+{
+  "client_id" : "db9c4633-f62d-4f64-8a1b-e704adca4541",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msauth://com.azuresamples.msalandroidapp/iLGKOXzrWf0i%2BiNudibv%2BzAM6mk%3D",
+  "account_mode" : "MULTIPLE",
+  "broker_redirect_uri_registered": true,
+  "authorities" : [
+    {
+      "type": "AAD",
+      "authority_url": "https://login.microsoftonline.com/e08deedd-4b94-46c7-b268-d25b78834500"
+    }
+  ]
+}
