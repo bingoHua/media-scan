@@ -1,7 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
+def room_version = "2.3.0"
 
 android {
     compileSdkVersion 30
@@ -71,5 +73,30 @@ dependencies {
     implementation 'com.microsoft.identity.client:msal:2.+'
     implementation 'com.microsoft.graph:microsoft-graph:1.5.+'
     implementation 'com.android.volley:volley:1.1.1'
+    implementation('com.microsoft.onedrivesdk:onedrive-picker-android:v2.0')
 
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.0'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    implementation 'cn.jzvd:jiaozivideoplayer:7.6.0'
+
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.14.0'
+    implementation 'com.google.android.exoplayer:exoplayer-hls:2.14.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    implementation "androidx.room:room-ktx:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.coroutines"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutines"
+
+    // Lifecycle components
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$rootProject.lifecycleVersion"
+
+    implementation "androidx.activity:activity-ktx:$rootProject.activityVersion"
+
+    implementation 'javax.inject:javax.inject:1'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
 }

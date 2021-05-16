@@ -2,32 +2,59 @@ package com.wt.cloudmedia
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.LinearLayout.LayoutParams.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.microsoft.graph.authentication.IAuthenticationProvider
-import com.microsoft.graph.core.ClientException
 import com.microsoft.graph.http.IHttpRequest
-import com.microsoft.graph.models.extensions.IGraphServiceClient
 import com.microsoft.graph.requests.extensions.GraphServiceClient
 import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
 import com.microsoft.identity.client.exception.MsalUiRequiredException
+import com.microsoft.onedrivesdk.picker.IPicker
+import com.microsoft.onedrivesdk.picker.LinkType
+import com.microsoft.onedrivesdk.picker.Picker
 import com.wt.cloudmedia.databinding.ActivityMainBinding
-import kotlin.concurrent.thread
+import com.wt.cloudmedia.ui.RecyclerViewAdapter
 
 
 class MainActivity : AppCompatActivity() {
+    private var adapter: RecyclerViewAdapter? = null
+    private var mAccount: IAccount? = null
     private lateinit var binding: ActivityMainBinding
     private var mSingleAccountApp: ISingleAccountPublicClientApplication? = null
     private val TAG = MainActivity::class.java.simpleName
-    private var authenticationResult: String? = null
+    private var authenticationResult: IAuthenticationResult? = null
+        set(value) {
+            field = value
+            value?.let {
+                (application as CloudMediaApplication).oneDriveService.setClient(GraphServiceClient.builder().authenticationProvider(object : IAuthenticationProvider {
+                    override fun authenticateRequest(request: IHttpRequest) {
+                        Log.d(TAG, "Authenticating request," + request.requestUrl)
+                        request.addHeader("Authorization", "Bearer ${it.accessToken}")
+                    }
+                }).buildClient())
+            }
+        }
+
+    private val picker: IPicker = Picker.createPicker("d985f794-0720-4351-924c-a93994834ae4")
+
+    private val movieViewModel: MovieViewModel by viewModels {
+        MovieViewModelFactory((application as CloudMediaApplication).repository)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
         initView()
+        movieViewModel.allMovie.observe(this) { movies ->
+            movies.let { adapter?.addItems(it) }
+        }
         PublicClientApplication.createSingleAccountPublicClientApplication(applicationContext,
             R.raw.auth_config_single_account, object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
                 override fun onCreated(application: ISingleAccountPublicClientApplication) {
@@ -55,12 +82,90 @@ class MainActivity : AppCompatActivity() {
             })
         }
         binding.request.setOnClickListener {
-            authenticationResult?.let { it1 -> callGraphAPI(it1) }
+            movieViewModel.loadMoves()
+        }
+        binding.picker.setOnClickListener {
+            picker.startPicking(this@MainActivity, LinkType.WebViewLink)
+        }
+        adapter = RecyclerViewAdapter()
+        binding.recyclerView.adapter = adapter
+        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+    }
+
+/*    private fun getFileList(accessToken: String) {
+        val client = GraphServiceClient.builder().authenticationProvider(object : IAuthenticationProvider {
+            override fun authenticateRequest(request: IHttpRequest) {
+                Log.d(TAG, "Authenticating request," + request.requestUrl)
+                request.addHeader("Authorization", "Bearer $accessToken")
+            }
+        }).buildClient()
+        val handlerThread = HandlerThread("load")
+        handlerThread.start()
+        val handler = Handler(handlerThread.looper)
+        handler.post {
+            try {
+                processItems(client)
+            } catch (e: ClientException) {
+                e.printStackTrace()
+            }
+        }
+    }*/
+
+    private fun getScreenSize(): IntArray {
+        return intArrayOf(this.resources.displayMetrics.widthPixels, this.resources.displayMetrics.widthPixels)
+    }
+
+    /*private fun processItems(client: IGraphServiceClient) {
+        val children = client.me().drive().root().itemWithPath("aria").children().buildRequest().get()
+        val items = ArrayList<DriveItem>()
+        children.currentPage.map {
+            if (it.folder != null) {
+                processFolder(client, it)
+            } else if (it.file != null && it.video != null) {
+                val item = client.me().drive().items(it.id).buildRequest().get()
+                println("lzh.${item.name} ${item.id} ${item.webUrl}")
+                val thumbnail = client.me().drive().items(it.id).thumbnails().buildRequest().get()
+                runOnUiThread {
+                    item.additionalDataManager()["@microsoft.graph.downloadUrl"]?.asString?.let { videoUrl ->
+                        adapter?.addItem(MediaMetaData(videoUrl, thumbnail.currentPage[0].large.url, item.name))
+                    }
+                }
+            }
         }
     }
 
+    private fun processFolder(client: IGraphServiceClient, folderItem: DriveItem) {
+        val result = client.me().drive().items(folderItem.id).children().buildRequest().get().currentPage
+        result.forEach {
+            if (it.folder != null) {
+                processFolder(client, it)
+            } else if (it.file != null && it.video != null){
+                val item = client.me().drive().items(it.id).buildRequest().get()
+                println("lzh.${item.name} ${item.id} ${item.webUrl}")
+                val thumbnail = client.me().drive().items(it.id).thumbnails().buildRequest().get()
+                runOnUiThread {
+                    item.additionalDataManager()["@microsoft.graph.downloadUrl"]?.asString?.let { url ->
+                        adapter?.addItem(MediaMetaData(url, thumbnail.currentPage[0].large.url, item.name))
+                    }
+                }
+            }
+        }
+    }*/
+
     private fun getScopes(): Array<String> {
-        return arrayOf("user.read","Files.Read")
+        return arrayOf(
+            "User.ReadBasic.All",
+            "User.Read",
+            "User.ReadWrite",
+            "User.Read.All",
+            "User.ReadWrite.All",
+            "Directory.Read.All",
+            "Directory.ReadWrite.All",
+            "Directory.AccessAsUser.All",
+            "Files.ReadWrite",
+            "Files.ReadWrite.All",
+            "Files.ReadWrite.Selected",
+            "Files.ReadWrite.AppFolder")
     }
 
     private fun getAuthInteractiveCallback(): AuthenticationCallback {
@@ -72,7 +177,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "ID Token: " + authenticationResult.account.claims!!["id_token"])
 
                 /* call graph */
-                this@MainActivity.authenticationResult =  authenticationResult.accessToken
+                this@MainActivity.authenticationResult = authenticationResult
             }
 
             override fun onError(exception: MsalException) {
@@ -101,7 +206,14 @@ class MainActivity : AppCompatActivity() {
         mSingleAccountApp?.getCurrentAccountAsync(object :
             ISingleAccountPublicClientApplication.CurrentAccountCallback {
             override fun onAccountLoaded(activeAccount: IAccount?) {
-                this@MainActivity.authenticationResult = (activeAccount as Account).getIdToken()
+                mAccount = activeAccount
+                mAccount?.let {
+                    /**
+                     * Once you've signed the user in,
+                     * you can perform acquireTokenSilent to obtain resources without interrupting the user.
+                     */
+                    mSingleAccountApp?.acquireTokenSilentAsync(getScopes(), it.authority, getAuthSilentCallback())
+                }
             }
 
             override fun onAccountChanged(priorAccount: IAccount?, currentAccount: IAccount?) {
@@ -125,9 +237,9 @@ class MainActivity : AppCompatActivity() {
 
             override fun onSuccess(authenticationResult: IAuthenticationResult) {
                 Log.d(TAG, "Successfully authenticated")
-
+                this@MainActivity.authenticationResult = authenticationResult
                 /* Successfully got a token, use it to call a protected resource - MSGraph */
-                callGraphAPI(authenticationResult.accessToken)
+                //callGraphAPI(authenticationResult.accessToken)
             }
 
             override fun onError(exception: MsalException) {
@@ -150,41 +262,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Make an HTTP request to obtain MSGraph data
-     */
-/*    private fun callGraphAPI(authenticationResult: IAuthenticationResult) {
-        MSGraphRequestWrapper.callGraphAPIWithVolley(
-            this@MainActivity,
-            "https://graph.microsoft.com/v1.0/me",
-            authenticationResult.accessToken,
-            { response ->
-                *//* Successfully called graph, process data and send to UI *//*
-                Log.d(TAG, "Response: $response")
-            },
-            { error ->
-                Log.d(TAG, "Error: $error")
-            })
-
-    }*/
-
-    private fun callGraphAPI(accessToken: String) {
-        val graphClient: IGraphServiceClient = GraphServiceClient
-            .builder()
-            .authenticationProvider(object : IAuthenticationProvider {
-                override fun authenticateRequest(request: IHttpRequest) {
-                    Log.d(TAG, "Authenticating request," + request.requestUrl)
-                    request.addHeader("Authorization", "Bearer $accessToken")
-                }
-            })
-            .buildClient()
-        thread {
-            try {
-                val result = graphClient.me().drives().buildRequest().get()
-            }catch (e : ClientException) {
-                e.printStackTrace()
-            }
-        }
-
-    }
 }
