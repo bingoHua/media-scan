@@ -12,7 +12,7 @@
         android:theme="@style/Theme.CloudMedia">
         <activity android:name=".MainActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="fullSensor">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

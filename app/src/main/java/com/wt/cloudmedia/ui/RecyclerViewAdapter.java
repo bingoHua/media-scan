@@ -1,11 +1,13 @@
 package com.wt.cloudmedia.ui;
 
 import android.annotation.SuppressLint;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -23,11 +25,41 @@ import cn.jzvd.JzvdStd;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder> {
 
     public static final String TAG = "AdapterRecyclerView";
-    private final List<Movie> mediaItems = new ArrayList<>();
+    private List<Movie> mediaItems = null;
 
     public void addItems(List<Movie> movies) {
-        mediaItems.addAll(movies);
-        notifyDataSetChanged();
+        if (mediaItems == null) {
+            mediaItems = new ArrayList<>();
+            mediaItems.addAll(movies);
+            notifyItemRangeInserted(0, mediaItems.size());
+        } else {
+            DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+                @Override
+                public int getOldListSize() {
+                    return mediaItems.size();
+                }
+
+                @Override
+                public int getNewListSize() {
+                    return movies.size();
+                }
+
+                @Override
+                public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                    return TextUtils.equals(movies.get(newItemPosition).getId(), mediaItems.get(oldItemPosition).getId());
+                }
+
+                @Override
+                public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                    Movie newProduct = movies.get(newItemPosition);
+                    Movie oldProduct = mediaItems.get(oldItemPosition);
+                    return TextUtils.equals(newProduct.getId(), (oldProduct.getId()))
+                            && TextUtils.equals(newProduct.getUrl(), oldProduct.getUrl());
+                }
+            });
+            mediaItems = movies;
+            result.dispatchUpdatesTo(this);
+        }
     }
 
     public void addItem(Movie mediaItem) {
@@ -57,7 +89,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public int getItemCount() {
-        return mediaItems.size();
+        return mediaItems == null ? 0 : mediaItems.size();
     }
 
     static class MyViewHolder extends RecyclerView.ViewHolder {

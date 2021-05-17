@@ -2,10 +2,13 @@ package com.wt.cloudmedia
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.LinearLayout.LayoutParams.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView.OnChildAttachStateChangeListener
+import cn.jzvd.Jzvd
 import com.microsoft.graph.authentication.IAuthenticationProvider
 import com.microsoft.graph.http.IHttpRequest
 import com.microsoft.graph.requests.extensions.GraphServiceClient
@@ -37,6 +40,7 @@ class MainActivity : AppCompatActivity() {
                         request.addHeader("Authorization", "Bearer ${it.accessToken}")
                     }
                 }).buildClient())
+                movieViewModel.loadMoves()
             }
         }
 
@@ -44,6 +48,18 @@ class MainActivity : AppCompatActivity() {
 
     private val movieViewModel: MovieViewModel by viewModels {
         MovieViewModelFactory((application as CloudMediaApplication).repository)
+    }
+
+    override fun onBackPressed() {
+        if (Jzvd.backPress()) {
+            return
+        }
+        super.onBackPressed()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Jzvd.releaseAllVideos()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,6 +106,17 @@ class MainActivity : AppCompatActivity() {
         adapter = RecyclerViewAdapter()
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.addOnChildAttachStateChangeListener(object : OnChildAttachStateChangeListener {
+            override fun onChildViewAttachedToWindow(view: View) {}
+            override fun onChildViewDetachedFromWindow(view: View) {
+                val jzvd: Jzvd = view.findViewById(R.id.videoplayer)
+                if (Jzvd.CURRENT_JZVD != null && jzvd.jzDataSource.containsTheUrl(Jzvd.CURRENT_JZVD.jzDataSource.currentUrl)) {
+                    if (Jzvd.CURRENT_JZVD != null && Jzvd.CURRENT_JZVD.screen != Jzvd.SCREEN_FULLSCREEN) {
+                        Jzvd.releaseAllVideos()
+                    }
+                }
+            }
+        })
     }
 
 /*    private fun getFileList(accessToken: String) {

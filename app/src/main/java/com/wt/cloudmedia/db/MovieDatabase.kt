@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = arrayOf(Movie::class), version = 3)
+@Database(entities = arrayOf(Movie::class), version = 4)
 abstract class MovieDatabase : RoomDatabase() {
     abstract fun movieDao(): MovieDao
 
@@ -33,6 +33,7 @@ abstract class MovieDatabase : RoomDatabase() {
                     // Wipes and rebuilds instead of migrating if no Migration object.
                     // Migration is not part of this codelab.
                     .fallbackToDestructiveMigration()
+                    .addCallback(MovieDatabaseCallback(scope))
                     .build()
                 INSTANCE = instance
                 // return instance

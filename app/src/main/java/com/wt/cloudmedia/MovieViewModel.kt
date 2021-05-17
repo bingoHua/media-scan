@@ -31,6 +31,7 @@ class MovieViewModel(private val repository: MovieRepository) : ViewModel() {
     private val _allMovies = MutableLiveData<List<Movie>>()
 
     val allMovie = MediatorLiveData<List<Movie>>()
+    val move = MediatorLiveData<Movie>()
 
     /**
      * Launching a new coroutine to insert the data in a non-blocking way
