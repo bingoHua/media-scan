@@ -1,37 +1,30 @@
 package com.wt.cloudmedia.api
 
 import androidx.annotation.WorkerThread
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.microsoft.graph.models.extensions.DriveItem
 import com.microsoft.graph.models.extensions.IGraphServiceClient
 import com.wt.cloudmedia.AppExecutors
-import com.wt.cloudmedia.vo.Movie
+import com.wt.cloudmedia.db.movie.Movie
 
-class OneDriveService constructor(private val appExecutors: AppExecutors) {
+class OneDriveService2 constructor(private val appExecutors: AppExecutors) {
 
     private var graphServiceClient: IGraphServiceClient? = null
 
-    fun getMovie(id: String): LiveData<ApiResponse<Movie>> {
-        val liveData = MutableLiveData<ApiResponse<Movie>>()
-        appExecutors.networkIO().execute {
-            getItem(id)?.let {
-                liveData.postValue(ApiResponse.create(it))
-            }
-        }
-        return liveData
+    @WorkerThread
+    fun getMovie(id: String): Movie? {
+        return getItem(id)
     }
 
-    fun getMovies(): LiveData<ApiResponse<List<Movie>>> {
+    fun getMovies(): LiveData<Movie> {
         //val client = GraphServiceClient.builder().authenticationProvider { request -> request.addHeader("Authorization", "Bearer $accessToken") }.buildClient()
         //val liveData = MutableLiveData<ApiResponse<List<Movie>>>()
-        val liveData = MutableLiveData<MutableList<Movie>>()
-        liveData.value = ArrayList()
+        val liveData = MutableLiveData<Movie>()
         appExecutors.networkIO().execute {
             processItems(liveData)
         }
-        return Transformations.map(liveData){
-            ApiResponse.create(it)
-        }
+        return liveData
     }
 
     fun setClient(client: IGraphServiceClient) {
@@ -40,32 +33,32 @@ class OneDriveService constructor(private val appExecutors: AppExecutors) {
 
     private fun getItem(id: String): Movie? {
         val client = this.graphServiceClient ?: return null
-        val result = client.me().drives(id).buildRequest().get()
+        val result = client.me().drive().items(id).buildRequest().get()
         println("lzh.${result.name} ${result.id} ${result.webUrl}")
         val thumbnail = client.me().drive().items(result.id).thumbnails().buildRequest().get()
         result.additionalDataManager()["@microsoft.graph.downloadUrl"]?.asString?.also { url ->
-            return Movie(result.id, url, thumbnail.currentPage[0].large.url, result.name, System.currentTimeMillis())
+            return Movie(result.id, url, thumbnail.currentPage[0].large.url, result.name, System.currentTimeMillis(), 0, null)
         }
         return null
     }
 
-    private fun processItems(liveData: MutableLiveData<MutableList<Movie>>) {
+    private fun processItems(liveData: MutableLiveData<Movie>) {
         val client = this.graphServiceClient ?: return
         val children = client.me().drive().root().itemWithPath("aria").children().buildRequest().get()
         with(children.currentPage) {
             this.forEach {
                 if (it.folder != null) {
-                    val list = liveData.value
-                    list?.addAll(processFolder(client, it))
-                    liveData.postValue(list)
+                    processFolder(client, it).let { movies ->
+                        movies.forEach { movie ->
+                            liveData.postValue(movie)
+                        }
+                    }
                 } else if (it.file != null && it.video != null) {
                     val item = client.me().drive().items(it.id).buildRequest().get()
                     println("lzh.${item.name} ${item.id} ${item.webUrl}")
                     val thumbnail = client.me().drive().items(it.id).thumbnails().buildRequest().get()
                     item.additionalDataManager()["@microsoft.graph.downloadUrl"]?.asString?.also { url ->
-                        val list = liveData.value
-                        list?.add(Movie(item.id, url, thumbnail.currentPage[0].large.url, item.name, System.currentTimeMillis()))
-                        liveData.postValue(list)
+                        liveData.postValue(Movie(item.id, url, thumbnail.currentPage[0].large.url, item.name, System.currentTimeMillis(), 0, null))
                     }
                 }
             }
@@ -83,7 +76,7 @@ class OneDriveService constructor(private val appExecutors: AppExecutors) {
                 println("lzh.${item.name} ${item.id} ${item.webUrl}")
                 val thumbnail = client.me().drive().items(it.id).thumbnails().buildRequest().get()
                 item.additionalDataManager()["@microsoft.graph.downloadUrl"]?.asString?.also { url ->
-                    movieList.add(Movie(item.id, url, thumbnail.currentPage[0].large.url, item.name, System.currentTimeMillis()))
+                    movieList.add(Movie(item.id, url, thumbnail.currentPage[0].large.url, item.name, System.currentTimeMillis(), 0, null))
                 }
             }
         }

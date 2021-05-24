@@ -4,32 +4,38 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.wt.cloudmedia.vo.Movie
+import com.wt.cloudmedia.db.movie.Movie
+import com.wt.cloudmedia.db.movie.MovieDao
+import com.wt.cloudmedia.db.recentMovie.RecentMovieDao
+import com.wt.cloudmedia.vo.DateConverters
+import com.wt.cloudmedia.db.recentMovie.RecentMovie
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = arrayOf(Movie::class), version = 4)
-abstract class MovieDatabase : RoomDatabase() {
+@Database(entities = [Movie::class, RecentMovie::class], version = 6)
+@TypeConverters(DateConverters::class)
+abstract class AppDatabase : RoomDatabase() {
     abstract fun movieDao(): MovieDao
+    abstract fun recentMovieDao(): RecentMovieDao
 
     companion object {
         @Volatile
-        private var INSTANCE: MovieDatabase? = null
+        private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(
             context: Context,
             scope: CoroutineScope
-        ): MovieDatabase {
+        ): AppDatabase {
             // if the INSTANCE is not null, then return it,
             // if it is, then create the database
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    MovieDatabase::class.java,
-                    "word_database"
-                )
+                    AppDatabase::class.java,
+                    "word_database")
                     // Wipes and rebuilds instead of migrating if no Migration object.
                     // Migration is not part of this codelab.
                     .fallbackToDestructiveMigration()
@@ -58,6 +64,7 @@ abstract class MovieDatabase : RoomDatabase() {
                 }
             }
         }
+
         /**
          * Populate the database in a new coroutine.
          * If you want to start with more words, just add them.

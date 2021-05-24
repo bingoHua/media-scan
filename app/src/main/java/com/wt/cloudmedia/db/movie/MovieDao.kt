@@ -1,8 +1,7 @@
-package com.wt.cloudmedia.db
+package com.wt.cloudmedia.db.movie
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.wt.cloudmedia.vo.Movie
 
 @Dao
 interface MovieDao {
@@ -15,10 +14,10 @@ interface MovieDao {
     @Query("SELECT * FROM movie_table WHERE id LIKE :id LIMIT 1")
     fun findById(id:String): LiveData<Movie>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertMovies(vararg movies: Movie)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertMovie(movie: Movie)
 
     @Delete

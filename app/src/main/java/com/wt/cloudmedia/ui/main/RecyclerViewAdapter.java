@@ -1,4 +1,4 @@
-package com.wt.cloudmedia.ui;
+package com.wt.cloudmedia.ui.main;
 
 import android.annotation.SuppressLint;
 import android.text.TextUtils;
@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.wt.cloudmedia.R;
-import com.wt.cloudmedia.vo.Movie;
+import com.wt.cloudmedia.db.movie.Movie;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +26,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     public static final String TAG = "AdapterRecyclerView";
     private List<Movie> mediaItems = null;
+    private ItemClicked itemClicked = null;
 
     public void addItems(List<Movie> movies) {
         if (mediaItems == null) {
@@ -79,7 +80,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Log.i(TAG, "onBindViewHolder [" + holder.jzvdStd.hashCode() + "] position=" + position);
-
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemClicked != null) {
+                    itemClicked.itemClicked(mediaItems.get(position));
+                }
+            }
+        });
         holder.jzvdStd.setUp(
                 mediaItems.get(position).getUrl(),
                 mediaItems.get(position).getName(), Jzvd.SCREEN_NORMAL);
@@ -101,4 +109,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         }
     }
 
+    public void setItemClicked(ItemClicked itemClicked) {
+        this.itemClicked = itemClicked;
+    }
+
+    interface ItemClicked {
+        void itemClicked(Movie movie);
+    }
 }

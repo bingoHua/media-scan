@@ -14,44 +14,31 @@
  * limitations under the License.
  */
 
-package com.wt.cloudmedia
+package com.wt.cloudmedia.ui.main
 
-import androidx.lifecycle.*
-import com.wt.cloudmedia.repository.MovieRepository
-import com.wt.cloudmedia.vo.Movie
-import kotlinx.coroutines.launch
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.wt.cloudmedia.db.movie.Movie
+import com.wt.cloudmedia.repository.MovieRepository2
 
 /**
  * View Model to keep a reference to the word repository and
  * an up-to-date list of all words.
  */
 
-class MovieViewModel(private val repository: MovieRepository) : ViewModel() {
+class MovieViewModel(private val repository: MovieRepository2) : ViewModel() {
 
-    private val _allMovies = MutableLiveData<List<Movie>>()
-
-    val allMovie = MediatorLiveData<List<Movie>>()
-    val move = MediatorLiveData<Movie>()
-
-    /**
-     * Launching a new coroutine to insert the data in a non-blocking way
-     */
-    fun insert(move: Movie) = viewModelScope.launch {
-        repository.insert(move)
+    fun loadMoves(): LiveData<List<Movie>> {
+        return repository.getMovies()
     }
 
-    fun loadMoves() {
-        val result = repository.loadMovies()
-        allMovie.addSource(result) {
-            if (it.data != null) {
-                allMovie.value = it.data
-            }
-        }
+    fun saveRecent(movie: Movie) {
+        repository.saveRecentMovie(movie)
     }
-
 }
 
-class MovieViewModelFactory(private val repository: MovieRepository) : ViewModelProvider.Factory {
+class MovieViewModelFactory(private val repository: MovieRepository2) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MovieViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
