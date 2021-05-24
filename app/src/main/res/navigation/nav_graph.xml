@@ -3,7 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/recentFragment">
+    app:startDestination="@id/userFragment">
+
+    <fragment
+        android:id="@+id/userFragment"
+        android:name="com.wt.cloudmedia.ui.user.UserFragment"
+        android:label="UserFragment"
+        tools:layout="@layout/fragment_user"/>
 
     <fragment
         android:id="@+id/recentFragment"
@@ -14,17 +20,6 @@
         android:id="@+id/mainFragment"
         android:name="com.wt.cloudmedia.ui.main.MainFragment"
         android:label="fragment_main"
-        tools:layout="@layout/fragment_main" >
-        <action
-            android:id="@+id/action_mainFragment_to_recentFragment"
-            app:destination="@id/recentFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/userFragment"
-        android:name="com.wt.cloudmedia.ui.user.UserFragment"
-        android:label="UserFragment" >
-        <action
-            android:id="@+id/action_userFragment_to_mainFragment"
-            app:destination="@id/mainFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_main" />
+
 </navigation>
