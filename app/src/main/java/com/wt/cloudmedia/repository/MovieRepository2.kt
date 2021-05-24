@@ -17,7 +17,7 @@ class MovieRepository2 constructor(private val appExecutors: AppExecutors,
                                    private val oneDriveService: OneDriveService2) {
 
     private val movieResult = MediatorLiveData<List<Movie>>()
-    private var deleted = false
+
     init {
         val dbData = movieDao.getAll()
         movieResult.addSource(dbData) {
@@ -30,18 +30,18 @@ class MovieRepository2 constructor(private val appExecutors: AppExecutors,
     private fun fetchFromRemote() {
         movieResult.addSource(oneDriveService.getMovies()) {
             appExecutors.networkIO().execute {
-                val match = movieResult.value?.find { movie ->
+                val list = movieResult.value
+                val match = list?.find { movie ->
                     it.id == movie.id
                 }
                 if (match == null) {
                     Log.d("MovieRepository2", "${it.name} is not added.")
-                    if (!deleted) {
-                        recentMovieDao.deleteAll()
-                        deleted = true
-                    }
-                    movieDao.insertMovie(it)
+                    movieDao.insertMovies(it)
                     recentMovieDao.insertMovie(RecentMovie(it.id, it.playDate, it.timeStamp))
                 } else {
+                    if (match.url != it.url) {
+                        movieDao.updateMovie(it)
+                    }
                     Log.d("MovieRepository2", "${it.name} is added.")
                 }
             }
@@ -59,6 +59,10 @@ class MovieRepository2 constructor(private val appExecutors: AppExecutors,
 
     fun saveRecentMovie(movie: Movie) {
         recentMovieDao.insertMovie(RecentMovie(movie.id, Date(System.currentTimeMillis()), movie.timeStamp))
+    }
+
+    fun getMoviesOneTime(): List<Movie>? {
+        return oneDriveService.getMoviesOneTime()
     }
 
 }

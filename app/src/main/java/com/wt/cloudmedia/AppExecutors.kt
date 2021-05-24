@@ -35,7 +35,7 @@ open class AppExecutors(
 ) {
     constructor() : this(
         Executors.newSingleThreadExecutor(),
-        Executors.newFixedThreadPool(3),
+        Executors.newFixedThreadPool(20),
         MainThreadExecutor()
     )
 

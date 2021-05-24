@@ -8,14 +8,14 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.wt.cloudmedia.db.movie.Movie
 import com.wt.cloudmedia.db.movie.MovieDao
+import com.wt.cloudmedia.db.recentMovie.RecentMovie
 import com.wt.cloudmedia.db.recentMovie.RecentMovieDao
 import com.wt.cloudmedia.vo.DateConverters
-import com.wt.cloudmedia.db.recentMovie.RecentMovie
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Movie::class, RecentMovie::class], version = 6)
+@Database(entities = [Movie::class, RecentMovie::class], version = 7)
 @TypeConverters(DateConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun movieDao(): MovieDao
@@ -25,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        @JvmStatic
         fun getDatabase(
             context: Context,
             scope: CoroutineScope

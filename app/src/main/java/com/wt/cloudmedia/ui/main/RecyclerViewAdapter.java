@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -91,6 +92,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.jzvdStd.setUp(
                 mediaItems.get(position).getUrl(),
                 mediaItems.get(position).getName(), Jzvd.SCREEN_NORMAL);
+        holder.jzvdStd.posterImageView.setScaleType(ImageView.ScaleType.CENTER);
         Glide.with(holder.jzvdStd.getContext()).load(
                 mediaItems.get(position).getThumbnail()).into(holder.jzvdStd.posterImageView);
     }

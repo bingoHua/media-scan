@@ -167,31 +167,6 @@ class CloudMediaApplication : Application() {
         }
     }
 
-    private fun getAuthInteractiveCallback(): AuthenticationCallback {
-        return object : AuthenticationCallback {
-
-            override fun onSuccess(authenticationResult: IAuthenticationResult) {
-
-                /* call graph */
-                this@CloudMediaApplication.authenticationResult = authenticationResult
-            }
-
-            override fun onError(exception: MsalException) {
-                /* Failed to acquireToken */
-
-                if (exception is MsalClientException) {
-                    /* Exception inside MSAL, more info inside MsalError.java */
-                } else if (exception is MsalServiceException) {
-                    /* Exception when communicating with the STS, likely config issue */
-                }
-            }
-
-            override fun onCancel() {
-                /* User canceled the authentication */
-            }
-        }
-    }
-
     private fun getScopes(): Array<String> {
         return arrayOf(
             "User.ReadBasic.All",

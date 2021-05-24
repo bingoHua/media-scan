@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 import java.sql.Date
 
 @Entity(tableName = "movie_table")
-data class Movie(@PrimaryKey val id: String,
+data class Movie constructor(@PrimaryKey val id: String,
                  @ColumnInfo(name = "url") val url: String?,
                  @ColumnInfo(name = "thumbnail_url") val thumbnail: String,
                  @ColumnInfo(name = "name") val name: String,
