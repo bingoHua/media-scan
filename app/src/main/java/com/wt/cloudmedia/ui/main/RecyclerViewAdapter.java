@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.wt.cloudmedia.R;
 import com.wt.cloudmedia.db.movie.Movie;
+import com.wt.cloudmedia.player.JzvdStd2;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -103,7 +104,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     static class MyViewHolder extends RecyclerView.ViewHolder {
-        JzvdStd jzvdStd;
+        JzvdStd2 jzvdStd;
 
         public MyViewHolder(View itemView) {
             super(itemView);
