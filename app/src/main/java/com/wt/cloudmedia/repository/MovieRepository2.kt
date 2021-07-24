@@ -3,6 +3,9 @@ package com.wt.cloudmedia.repository
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.switchMap
+import com.funnywolf.livedatautils.EventMediatorLiveData
+import com.funnywolf.livedatautils.EventMutableLiveData
 import com.wt.cloudmedia.AppExecutors
 import com.wt.cloudmedia.api.OneDriveService2
 import com.wt.cloudmedia.db.movie.Movie
@@ -16,21 +19,57 @@ class MovieRepository2 constructor(private val appExecutors: AppExecutors,
                                    private val recentMovieDao: RecentMovieDao,
                                    private val oneDriveService: OneDriveService2) {
 
-    private val movieResult = MediatorLiveData<List<Movie>>()
+    private val dbResult = MediatorLiveData<List<Movie>>()
+    val moveLivedata: LiveData<List<Movie>> = dbResult.switchMap {
+        processUpdate(it)
+    }
+
+    private fun processUpdate(movieList: List<Movie>): LiveData<List<Movie>> {
+        val mediator = EventMediatorLiveData<List<Movie>>()
+        val liveData = EventMutableLiveData<Movie>()
+        mediator.value = arrayListOf()
+        mediator.addSource(liveData) {
+            (mediator.value as MutableList).add(it)
+        }
+        appExecutors.networkIO().execute {
+            movieList.forEach {
+                if ( System.currentTimeMillis() - it.time  < 3600 * 1000) {
+                    liveData.postValue(it)
+                } else {
+                    appExecutors.mainThread().execute {
+                        /*val movieLiveData = oneDriveService.getMoviesById(it.id)
+                        movieLiveData?.let { moLiveData ->
+                            mediator.addSource(moLiveData) { movie ->
+                                mediator.removeSource(moLiveData)
+                                val list = mediator.value as MutableList
+                                list.add(movie)
+                                mediator.value = list
+                                appExecutors.diskIO().execute {
+                                    movieDao.updateMovie(movie)
+                                }
+                            }
+                        }*/
+                    }
+                }
+            }
+        }
+        return mediator
+    }
 
     init {
         val dbData = movieDao.getAll()
-        movieResult.addSource(dbData) {
+        dbResult.addSource(dbData) {
+            dbResult.removeSource(dbData)
             if (!it.isNullOrEmpty()) {
-                movieResult.value = it
+                dbResult.value = it
             }
         }
     }
 
     private fun fetchFromRemote() {
-        movieResult.addSource(oneDriveService.getMovies()) {
+        /*dbResult.addSource(oneDriveService.getMovies()) {
             appExecutors.networkIO().execute {
-                val list = movieResult.value
+                val list = dbResult.value
                 val match = list?.find { movie ->
                     it.id == movie.id
                 }
@@ -41,16 +80,18 @@ class MovieRepository2 constructor(private val appExecutors: AppExecutors,
                 } else {
                     if (match.url != it.url) {
                         movieDao.updateMovie(it)
+                        Log.d("MovieRepository2", "${it.name} update.")
+                    } else {
+                        Log.d("MovieRepository2", "${it.name} is added.")
                     }
-                    Log.d("MovieRepository2", "${it.name} is added.")
                 }
             }
-        }
+        }*/
     }
 
     fun getMovies(): LiveData<List<Movie>> {
         fetchFromRemote()
-        return movieResult
+        return dbResult
     }
 
     fun getRecentMovies(): LiveData<List<Movie>> {
@@ -61,8 +102,5 @@ class MovieRepository2 constructor(private val appExecutors: AppExecutors,
         recentMovieDao.insertMovie(RecentMovie(movie.id, Date(System.currentTimeMillis()), movie.timeStamp))
     }
 
-    fun getMoviesOneTime(): List<Movie>? {
-        return oneDriveService.getMoviesOneTime()
-    }
 
 }

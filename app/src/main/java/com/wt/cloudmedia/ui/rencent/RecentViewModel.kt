@@ -8,9 +8,9 @@ import com.wt.cloudmedia.repository.MovieRepository2
 
 class RecentViewModel(private val repository: MovieRepository2) : ViewModel() {
 
-    fun getRecentMovies(): LiveData<List<Movie>> {
+    /*fun getRecentMovies(): LiveData<List<Movie>> {
         return repository.getRecentMovies()
-    }
+    }*/
 
 }
 

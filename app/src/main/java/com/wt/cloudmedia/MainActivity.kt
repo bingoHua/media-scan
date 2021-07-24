@@ -11,6 +11,7 @@ import androidx.navigation.ui.setupWithNavController
 import cn.jzvd.Jzvd
 import com.google.android.material.navigation.NavigationView
 import com.wt.cloudmedia.databinding.ActivityMainBinding
+import com.wt.cloudmedia.ui.event.SharedViewModel
 
 
 class MainActivity : BaseActivity() {
@@ -25,7 +26,6 @@ class MainActivity : BaseActivity() {
         setContentView(view)
         setupNavigationDrawer()
         setSupportActionBar(findViewById(R.id.toolbar))
-
         val navController: NavController = findNavController(R.id.nav_host_fragment)
         appBarConfiguration =
             AppBarConfiguration.Builder(R.id.userFragment, R.id.recentFragment, R.id.mainFragment)

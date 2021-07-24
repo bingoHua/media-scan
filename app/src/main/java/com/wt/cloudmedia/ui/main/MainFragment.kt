@@ -9,9 +9,12 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.jzvd.Jzvd
+import com.microsoft.graph.requests.extensions.GraphServiceClient
 import com.wt.cloudmedia.BaseFragment
 import com.wt.cloudmedia.R
 import com.wt.cloudmedia.databinding.FragmentMainBinding
+import com.wt.cloudmedia.repository.DataRepository
+import com.wt.cloudmedia.ui.event.SharedViewModel
 
 /**
  * A simple [Fragment] subclass.
@@ -21,10 +24,15 @@ import com.wt.cloudmedia.databinding.FragmentMainBinding
 class MainFragment : BaseFragment() {
 
     private val viewModel: MovieViewModel by viewModels {
-        MovieViewModelFactory(getMediaApplication().repository)
+        MovieViewModelFactory(DataRepository.getInstance())
     }
-
+    private lateinit var sharedViewModel: SharedViewModel
     private lateinit var binding: FragmentMainBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedViewModel = getApplicationScopeViewModel(SharedViewModel::class.java)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -43,7 +51,7 @@ class MainFragment : BaseFragment() {
         binding.recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
             override fun onChildViewAttachedToWindow(view: View) {}
             override fun onChildViewDetachedFromWindow(view: View) {
-                val jzvd: Jzvd = view.findViewById(R.id.videoplayer)
+                val jzvd: Jzvd = view.findViewById(R.id.videoplayer) ?: return
                 if (Jzvd.CURRENT_JZVD != null && jzvd.jzDataSource.containsTheUrl(Jzvd.CURRENT_JZVD.jzDataSource.currentUrl)) {
                     if (Jzvd.CURRENT_JZVD != null && Jzvd.CURRENT_JZVD.screen != Jzvd.SCREEN_FULLSCREEN) {
                         Jzvd.releaseAllVideos()
@@ -54,9 +62,14 @@ class MainFragment : BaseFragment() {
         adapter?.setItemClicked {
             viewModel.saveRecent(it)
         }
-
-        viewModel.loadMoves().observe(this) { movies ->
+        viewModel.movies.observe(this) { movies ->
             movies.let { adapter?.addItems(it) }
+        }
+        sharedViewModel.userRequest.loginResult.observe(this) {
+            val result = GraphServiceClient.builder().authenticationProvider { request ->
+                request.addHeader("Authorization", "Bearer ${it.result.accessToken}")
+            }
+            viewModel.requestMovies(result.buildClient())
         }
     }
 

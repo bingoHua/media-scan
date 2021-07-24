@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.jzvd.Jzvd;
-import cn.jzvd.JzvdStd;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder> {
 
@@ -82,14 +81,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Log.i(TAG, "onBindViewHolder [" + holder.jzvdStd.hashCode() + "] position=" + position);
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (itemClicked != null) {
-                    itemClicked.itemClicked(mediaItems.get(position));
-                }
-            }
-        });
         holder.jzvdStd.setUp(
                 mediaItems.get(position).getUrl(),
                 mediaItems.get(position).getName(), Jzvd.SCREEN_NORMAL);

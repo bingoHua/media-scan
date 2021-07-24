@@ -16,10 +16,10 @@
 
 package com.wt.cloudmedia.ui.main
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.*
+import com.microsoft.graph.models.extensions.IGraphServiceClient
 import com.wt.cloudmedia.db.movie.Movie
+import com.wt.cloudmedia.repository.DataRepository
 import com.wt.cloudmedia.repository.MovieRepository2
 
 /**
@@ -27,18 +27,27 @@ import com.wt.cloudmedia.repository.MovieRepository2
  * an up-to-date list of all words.
  */
 
-class MovieViewModel(private val repository: MovieRepository2) : ViewModel() {
+class MovieViewModel(private val repository: DataRepository) : ViewModel() {
 
-    fun loadMoves(): LiveData<List<Movie>> {
-        return repository.getMovies()
+    private val m = MediatorLiveData<Movie>()
+    private val moveList = ArrayList<Movie>()
+    val movies = m.map {
+        moveList.add(it)
+        moveList
+    }
+
+    fun requestMovies(client: IGraphServiceClient) {
+        m.addSource(repository.getMovies(client)) {
+            m.value = it
+        }
     }
 
     fun saveRecent(movie: Movie) {
-        repository.saveRecentMovie(movie)
+        //repository.saveRecentMovie(movie)
     }
 }
 
-class MovieViewModelFactory(private val repository: MovieRepository2) : ViewModelProvider.Factory {
+class MovieViewModelFactory(private val repository: DataRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MovieViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

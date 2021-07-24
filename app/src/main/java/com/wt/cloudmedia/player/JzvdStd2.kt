@@ -6,16 +6,49 @@ import android.provider.Settings
 import android.provider.Settings.SettingNotFoundException
 import android.util.AttributeSet
 import android.util.Log
+import android.view.GestureDetector
+import android.view.GestureDetector.SimpleOnGestureListener
+import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.widget.Toast
 import cn.jzvd.JZUtils
 import cn.jzvd.JzvdStd
+import com.wt.cloudmedia.R
 import kotlin.math.abs
 
 class JzvdStd2(context: Context, attrs: AttributeSet) : JzvdStd(context, attrs) {
 
-    private  val touchSlop = ViewConfiguration.get(jzvdContext).scaledTouchSlop
-    private val playCallback : (()->Unit)? = null
+    private val touchSlop = ViewConfiguration.get(jzvdContext).scaledTouchSlop
+
+    init {
+        gestureDetector = GestureDetector(getContext().applicationContext, object : SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                val totalTimeDuration = duration
+
+                var seek = if (e.x > width / 2) {
+                    currentPositionWhenPlaying + 10 * 1000
+                } else {
+                    currentPositionWhenPlaying - 10 * 1000
+                }
+                if (seek > totalTimeDuration) seek = totalTimeDuration
+                if (seek < 0) seek = 0
+                mediaInterface.seekTo(seek)
+                return super.onDoubleTap(e)
+            }
+
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                if (!mChangePosition && !mChangeVolume) {
+                    onClickUiToggle()
+                }
+                return super.onSingleTapConfirmed(e)
+            }
+
+            override fun onLongPress(e: MotionEvent) {
+                super.onLongPress(e)
+            }
+        })
+    }
 
     override fun gotoNormalScreen() { //goback本质上是goto
         gobakFullscreenTime = System.currentTimeMillis() //退出全屏
@@ -28,6 +61,25 @@ class JzvdStd2(context: Context, attrs: AttributeSet) : JzvdStd(context, attrs) 
         JZUtils.showStatusBar(jzvdContext)
         JZUtils.setRequestedOrientation(jzvdContext, NORMAL_ORIENTATION)
         JZUtils.showSystemUI(jzvdContext)
+    }
+
+    override fun clickPoster() {
+        if (jzDataSource == null || jzDataSource.urlsMap.isEmpty() || jzDataSource.currentUrl == null) {
+            Toast.makeText(jzvdContext, resources.getString(R.string.no_url), Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (state == STATE_NORMAL) {
+            if (!jzDataSource.currentUrl.toString().startsWith("file") &&
+                !jzDataSource.currentUrl.toString().startsWith("/") &&
+                !JZUtils.isWifiConnected(jzvdContext) && !WIFI_TIP_DIALOG_SHOWED
+            ) {
+                showWifiDialog()
+                return
+            }
+            startVideo()
+        } else if (state == STATE_AUTO_COMPLETE) {
+            onClickUiToggle()
+        }
     }
 
     override fun gotoFullscreen() {

@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.wt.cloudmedia.db.movie.Movie
 import com.wt.cloudmedia.db.movie.MovieDao
@@ -15,7 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Movie::class, RecentMovie::class], version = 7)
+@Database(entities = [Movie::class, RecentMovie::class], version = 8)
 @TypeConverters(DateConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun movieDao(): MovieDao
@@ -41,6 +42,11 @@ abstract class AppDatabase : RoomDatabase() {
                     // Migration is not part of this codelab.
                     .fallbackToDestructiveMigration()
                     .addCallback(MovieDatabaseCallback(scope))
+                    .addMigrations(object : Migration(7,8) {
+                        override fun migrate(database: SupportSQLiteDatabase) {
+                            database.execSQL("ALTER TABLE movie_table ADD COLUMN add_time INTEGER NOT NULL DEFAULT 0")
+                        }
+                    })
                     .build()
                 INSTANCE = instance
                 // return instance

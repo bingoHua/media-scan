@@ -55,9 +55,9 @@ class RecentFragment : BaseFragment() {
                 }
             }
         })
-        viewModel.getRecentMovies().observe(this) {
+     /*   viewModel.getRecentMovies().observe(this) {
             it.let { adapter?.addItems(it) }
-        }
+        }*/
     }
 
 }
