@@ -16,6 +16,7 @@
 
 package com.wt.cloudmedia.ui.main
 
+import androidx.arch.core.util.Function
 import androidx.lifecycle.*
 import com.microsoft.graph.models.extensions.IGraphServiceClient
 import com.wt.cloudmedia.db.movie.Movie
@@ -32,6 +33,11 @@ class MovieViewModel(private val repository: DataRepository) : ViewModel() {
     private val m = MediatorLiveData<Movie>()
     private val moveList = ArrayList<Movie>()
     val movies = m.map {
+        moveList.add(it)
+        moveList
+    }
+
+    val movies2 = Transformations.map(m) {
         moveList.add(it)
         moveList
     }

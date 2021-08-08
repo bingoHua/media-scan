@@ -103,7 +103,6 @@ dependencies {
     implementation "androidx.activity:activity-ktx:$rootProject.activityVersion"
 
     implementation 'javax.inject:javax.inject:1'
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
 
     implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
     implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
@@ -113,7 +112,9 @@ dependencies {
     // Kotlin + coroutines
     implementation "androidx.work:work-runtime-ktx:$work_version"
     // optional - RxJava2 support
-    implementation "androidx.work:work-rxjava2:$work_version"
     implementation 'com.funnywolf:LiveDataUtils:1.1.1'
 
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
 }

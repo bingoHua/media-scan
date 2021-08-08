@@ -20,6 +20,13 @@
         android:id="@+id/mainFragment"
         android:name="com.wt.cloudmedia.ui.main.MainFragment"
         android:label="fragment_main"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_mainFragment_to_userFragment"
+            app:destination="@id/userFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_recentFragment"
+            app:destination="@id/recentFragment" />
+    </fragment>
 
 </navigation>

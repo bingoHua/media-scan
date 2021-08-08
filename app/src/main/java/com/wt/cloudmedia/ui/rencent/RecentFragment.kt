@@ -12,10 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import cn.jzvd.Jzvd
 import com.wt.cloudmedia.BaseFragment
 import com.wt.cloudmedia.R
-import com.wt.cloudmedia.databinding.FragmentMainBinding
 import com.wt.cloudmedia.databinding.RecentFragmentBinding
-import com.wt.cloudmedia.ui.main.MovieViewModel
-import com.wt.cloudmedia.ui.main.MovieViewModelFactory
 import com.wt.cloudmedia.ui.main.RecyclerViewAdapter
 
 class RecentFragment : BaseFragment() {
