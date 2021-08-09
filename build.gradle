@@ -1,5 +1,9 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
+    ext {
+        appTargetSdk = 30
+        appMinSdk = 29
+    }
     ext.kotlin_version = "1.4.31"
     ext.navigationVersion = "2.1.0-alpha06"
     repositories {
