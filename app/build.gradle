@@ -6,13 +6,13 @@ plugins {
 def room_version = "2.3.0"
 
 android {
-    compileSdkVersion appTargetSdk
+    compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.wt.cloudmedia"
-        minSdkVersion appMinSdk
-        targetSdkVersion appTargetSdk
+        minSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
