@@ -20,6 +20,7 @@ class MovieRepository2 constructor(private val appExecutors: AppExecutors,
                                    private val oneDriveService: OneDriveService2) {
 
     private val dbResult = MediatorLiveData<List<Movie>>()
+
     val moveLivedata: LiveData<List<Movie>> = dbResult.switchMap {
         processUpdate(it)
     }

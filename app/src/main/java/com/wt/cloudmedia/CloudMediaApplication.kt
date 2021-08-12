@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import com.wt.cloudmedia.api.OneDriveService2
 import com.wt.cloudmedia.db.AppDatabase
+import com.wt.cloudmedia.repository.DataRepository
 import com.wt.cloudmedia.repository.MovieRepository2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -17,10 +18,18 @@ class CloudMediaApplication : Application(), ViewModelStoreOwner {
     // Using by lazy so the database and the repository are only created when they're needed
     // rather than when the application starts
     private val database by lazy { AppDatabase.getDatabase(this, applicationScope) }
-    val appExecutors by lazy { AppExecutors() }
+    val dataRepository by lazy { DataRepository.getInstance(oneDriveService, database) }
+    private val appExecutors by lazy { AppExecutors() }
     private val oneDriveService by lazy { OneDriveService2(appExecutors) }
-    val repository by lazy { MovieRepository2(appExecutors, database.movieDao(), database.recentMovieDao(), oneDriveService) }
-    private lateinit var  appViewModelStore: ViewModelStore
+    val repository by lazy {
+        MovieRepository2(
+            appExecutors,
+            database.movieDao(),
+            database.recentMovieDao(),
+            oneDriveService
+        )
+    }
+    private lateinit var appViewModelStore: ViewModelStore
 
     override fun onCreate() {
         super.onCreate()

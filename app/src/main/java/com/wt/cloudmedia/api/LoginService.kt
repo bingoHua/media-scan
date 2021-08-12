@@ -1,14 +1,13 @@
-package com.wt.cloudmedia
+package com.wt.cloudmedia.api
 
 import android.app.Activity
 import androidx.lifecycle.MutableLiveData
-import com.microsoft.graph.requests.extensions.GraphServiceClient
 import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
-import com.microsoft.identity.client.exception.MsalUiRequiredException
-import com.wt.cloudmedia.constant.CANCEL
+import com.wt.cloudmedia.CloudMediaApplication
+import com.wt.cloudmedia.R
 import com.wt.cloudmedia.constant.OK
 import com.wt.cloudmedia.request.DataResult
 import com.wt.cloudmedia.request.ResponseStatus
@@ -16,14 +15,17 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.*
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
-import java.lang.Exception
 
 object LoginService {
 
     private lateinit var mSingleAccountApp: ISingleAccountPublicClientApplication
+    private var authenticationResult : IAuthenticationResult? = null
+
+    fun getAuthenticationResult() = authenticationResult
 
     init {
-        PublicClientApplication.createSingleAccountPublicClientApplication(CloudMediaApplication.instance(),
+        PublicClientApplication.createSingleAccountPublicClientApplication(
+            CloudMediaApplication.instance(),
             R.raw.auth_config_single_account, object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
                 override fun onCreated(application: ISingleAccountPublicClientApplication) {
                     mSingleAccountApp = application
@@ -33,16 +35,6 @@ object LoginService {
                 }
             })
     }
-
-/*    private var authenticationResult: IAuthenticationResult? = null
-        set(value) {
-            field = value
-            value?.let {
-                oneDriveService.setClient(GraphServiceClient.builder().authenticationProvider { request ->
-                    request.addHeader("Authorization", "Bearer ${it.accessToken}")
-                }.buildClient())
-            }
-        }*/
 
     private fun slienceLogin(): Observable<IAuthenticationResult> {
         return Observable.create(ObservableOnSubscribe<IAccount> { emitter ->
@@ -114,64 +106,6 @@ object LoginService {
 
         })
     }
-
-   /* private fun loadAccount() {
-        if (mSingleAccountApp == null) {
-            return
-        }
-        mSingleAccountApp?.getCurrentAccountAsync(object :
-            ISingleAccountPublicClientApplication.CurrentAccountCallback {
-            override fun onAccountLoaded(activeAccount: IAccount?) {
-                mAccount = activeAccount
-                mAccount?.let {
-                    *//**
-                     * Once you've signed the user in,
-                     * you can perform acquireTokenSilent to obtain resources without interrupting the user.
-                     *//*
-                    mSingleAccountApp?.acquireTokenSilentAsync(getScopes(), it.authority, getAuthSilentCallback())
-                }
-            }
-
-            override fun onAccountChanged(priorAccount: IAccount?, currentAccount: IAccount?) {
-                if (currentAccount == null) {
-                    // Perform a cleanup task as the signed-in account changed.
-                }
-            }
-
-            override fun onError(exception: MsalException) {
-            }
-        })
-    }*/
-
-    /*private fun getAuthSilentCallback(): AuthenticationCallback {
-        return object : AuthenticationCallback {
-
-            override fun onSuccess(authenticationResult: IAuthenticationResult) {
-                this.authenticationResult = authenticationResult
-                *//* Successfully got a token, use it to call a protected resource - MSGraph *//*
-                //callGraphAPI(authenticationResult.accessToken)
-            }
-
-            override fun onError(exception: MsalException) {
-                *//* Failed to acquireToken *//*
-                when (exception) {
-                    is MsalClientException -> {
-                        *//* Exception inside MSAL, more info inside MsalError.java *//*
-                    }
-                    is MsalServiceException -> {
-                        *//* Exception when communicating with the STS, likely config issue *//*
-                    }
-                    is MsalUiRequiredException -> {
-                        *//* Tokens expired or no session, retry with interactive *//*
-                    }
-                }
-            }
-
-            override fun onCancel() {
-                *//* User cancelled the authentication *//*
-            }
-        }
-    }*/
 
     fun getUserName(): MutableLiveData<String> {
         val userName = MutableLiveData<String>()

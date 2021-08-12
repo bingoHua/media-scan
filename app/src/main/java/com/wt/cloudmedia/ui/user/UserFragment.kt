@@ -4,15 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.wt.cloudmedia.BaseFragment
-import com.wt.cloudmedia.constant.OK
 import com.wt.cloudmedia.databinding.FragmentUserBinding
-import com.wt.cloudmedia.request.DataResult
 import com.wt.cloudmedia.ui.event.SharedViewModel
-import com.wt.cloudmedia.ui.rencent.RecentMovieViewModelFactory
 
 class UserFragment : BaseFragment() {
 
@@ -33,7 +27,7 @@ class UserFragment : BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        userViewModel.userRequest.loginResult.observe(viewLifecycleOwner, { t ->
+        userViewModel.userRequest.userLiveData.observe(viewLifecycleOwner, { t ->
             if (t.responseStatus.isSuccess) {
                 binding.userName.text = t.result.account.username
             } else {

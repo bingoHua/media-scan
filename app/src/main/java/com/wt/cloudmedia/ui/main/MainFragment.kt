@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.jzvd.Jzvd
@@ -14,7 +15,12 @@ import com.wt.cloudmedia.BaseFragment
 import com.wt.cloudmedia.R
 import com.wt.cloudmedia.databinding.FragmentMainBinding
 import com.wt.cloudmedia.repository.DataRepository
+import com.wt.cloudmedia.request.ResponseStatus
 import com.wt.cloudmedia.ui.event.SharedViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 
 /**
  * A simple [Fragment] subclass.
@@ -24,7 +30,7 @@ import com.wt.cloudmedia.ui.event.SharedViewModel
 class MainFragment : BaseFragment() {
 
     private val viewModel: MovieViewModel by viewModels {
-        MovieViewModelFactory(DataRepository.getInstance())
+        MovieViewModelFactory(getMediaApplication().dataRepository)
     }
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var binding: FragmentMainBinding
@@ -62,14 +68,13 @@ class MainFragment : BaseFragment() {
         adapter?.setItemClicked {
             viewModel.saveRecent(it)
         }
-        viewModel.movies.observe(this) { movies ->
+        /*viewModel.movies.observe(this) { movies ->
             movies.let { adapter?.addItems(it) }
-        }
-        sharedViewModel.userRequest.loginResult.observe(this) {
-            val result = GraphServiceClient.builder().authenticationProvider { request ->
-                request.addHeader("Authorization", "Bearer ${it.result.accessToken}")
+        }*/
+        viewModel.dataRequest.requestMovie().observe(this) {
+            if (it.responseStatus.isSuccess) {
+                adapter?.addItems(it.result)
             }
-            viewModel.requestMovies(result.buildClient())
         }
     }
 
