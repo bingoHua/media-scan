@@ -52,6 +52,6 @@ public class DataResult<T> {
     }
 
     public interface Result<T> {
-        void onResult(DataResult<T> dataResult);
+        void onResult(@NonNull DataResult<T> dataResult);
     }
 }

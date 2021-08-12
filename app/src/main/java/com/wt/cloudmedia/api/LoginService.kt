@@ -19,24 +19,23 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 object LoginService {
 
     private lateinit var mSingleAccountApp: ISingleAccountPublicClientApplication
-    private var authenticationResult : IAuthenticationResult? = null
+    private var authenticationResult: IAuthenticationResult? = null
 
     fun getAuthenticationResult() = authenticationResult
 
-    init {
-        PublicClientApplication.createSingleAccountPublicClientApplication(
-            CloudMediaApplication.instance(),
-            R.raw.auth_config_single_account, object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
-                override fun onCreated(application: ISingleAccountPublicClientApplication) {
-                    mSingleAccountApp = application
-                }
+    private fun singleAppBuild() =
+        Single.create(SingleOnSubscribe<ISingleAccountPublicClientApplication> { emitter ->
+            if (::mSingleAccountApp.isInitialized) {
+                emitter.onSuccess(mSingleAccountApp)
+            } else {
+                mSingleAccountApp = PublicClientApplication.createSingleAccountPublicClientApplication(
+                    CloudMediaApplication.instance(),
+                    R.raw.auth_config_single_account)
+                emitter.onSuccess(mSingleAccountApp)
+            }
+        })
 
-                override fun onError(exception: MsalException?) {
-                }
-            })
-    }
-
-    private fun slienceLogin(): Observable<IAuthenticationResult> {
+    private fun slienceLogin(mSingleAccountApp: ISingleAccountPublicClientApplication): Observable<IAuthenticationResult> {
         return Observable.create(ObservableOnSubscribe<IAccount> { emitter ->
             emitter.onNext(mSingleAccountApp.currentAccount?.currentAccount) })
             .flatMap { t ->
@@ -50,7 +49,7 @@ object LoginService {
             }
     }
 
-    private fun bigLogin(activity: Activity): Observable<IAuthenticationResult> {
+    private fun bigLogin(mSingleAccountApp: ISingleAccountPublicClientApplication, activity: Activity): Observable<IAuthenticationResult> {
         return Observable.create { emitter ->
             mSingleAccountApp.signIn(activity, null, getScopes(), object : AuthenticationCallback {
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
@@ -71,8 +70,9 @@ object LoginService {
     }
 
     fun login(activity: Activity, result: DataResult.Result<IAuthenticationResult>) {
-        Observable.concat(slienceLogin(), bigLogin(activity))
-            .firstOrError()
+        singleAppBuild().toObservable().flatMap { t ->
+            Observable.concat(slienceLogin(t), bigLogin(t, activity))
+        }.firstOrError()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : SingleObserver<IAuthenticationResult> {
@@ -81,6 +81,7 @@ object LoginService {
                 }
 
                 override fun onSuccess(t: IAuthenticationResult) {
+                    authenticationResult = t
                     result.onResult(DataResult(t, ResponseStatus(OK.toString(), true)))
                 }
 

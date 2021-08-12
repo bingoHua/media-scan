@@ -18,7 +18,7 @@ class CloudMediaApplication : Application(), ViewModelStoreOwner {
     // Using by lazy so the database and the repository are only created when they're needed
     // rather than when the application starts
     private val database by lazy { AppDatabase.getDatabase(this, applicationScope) }
-    val dataRepository by lazy { DataRepository.getInstance(oneDriveService, database) }
+    val dataRepository by lazy { DataRepository.getInstance(oneDriveService, database.movieDao()) }
     private val appExecutors by lazy { AppExecutors() }
     private val oneDriveService by lazy { OneDriveService2(appExecutors) }
     val repository by lazy {

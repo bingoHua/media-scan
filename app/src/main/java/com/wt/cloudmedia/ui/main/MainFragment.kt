@@ -65,9 +65,9 @@ class MainFragment : BaseFragment() {
                 }
             }
         })
-        adapter?.setItemClicked {
+        /*adapter?.setItemClicked {
             viewModel.saveRecent(it)
-        }
+        }*/
         /*viewModel.movies.observe(this) { movies ->
             movies.let { adapter?.addItems(it) }
         }*/
