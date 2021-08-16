@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.lifecycle.MutableLiveData
 import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalClientException
+import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
 import com.wt.cloudmedia.CloudMediaApplication
@@ -15,6 +16,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.*
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.lang.Exception
 
 object LoginService {
 
@@ -44,12 +46,14 @@ object LoginService {
             } else {
                 emitter.onNext(mSingleAccountApp.currentAccount?.currentAccount)
             }
-        }).flatMap { t ->
+        }).flatMap {
             Observable.create { emitter ->
-                t?.also {
-                    emitter.onNext(mSingleAccountApp.acquireTokenSilent(getScopes(), it.authority))
-                }?.run {
+                try {
+                    val token = mSingleAccountApp.acquireTokenSilent(getScopes(), it.authority)
+                    emitter.onNext(token)
                     emitter.onComplete()
+                } catch (e: Exception) {
+                    emitter.onError(e)
                 }
             }
         }
@@ -64,6 +68,7 @@ object LoginService {
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
                     /* call graph */
                     emitter.onNext(authenticationResult)
+                    emitter.onComplete()
                 }
 
                 override fun onError(exception: MsalException) {
@@ -95,14 +100,18 @@ object LoginService {
                 }
 
                 override fun onError(exception: Throwable) {
-                    if (exception is MsalClientException) {
-                        result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
-                        /* Exception inside MSAL, more info inside MsalError.java */
-                    } else if (exception is MsalServiceException) {
-                        result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
-                        /* Exception when communicating with the STS, likely config issue */
-                    } else {
-                        result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
+                    when (exception) {
+                        is MsalClientException -> {
+                            result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
+                            /* Exception inside MSAL, more info inside MsalError.java */
+                        }
+                        is MsalServiceException -> {
+                            result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
+                            /* Exception when communicating with the STS, likely config issue */
+                        }
+                        else -> {
+                            result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
+                        }
                     }
                 }
             })

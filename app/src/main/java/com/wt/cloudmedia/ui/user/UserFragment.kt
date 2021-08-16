@@ -46,12 +46,12 @@ class UserFragment : BaseFragment() {
         }
 
         binding.login.setOnClickListener {
-            showLoading(false)
+            showLoading(true)
             userViewModel.userRequest.requestLogin(this.getBaseActivity())
         }
 
         binding.logout.setOnClickListener {
-            showLoading(false)
+            showLoading(true)
             userViewModel.userRequest.requestLoginOut()
         }
     }
