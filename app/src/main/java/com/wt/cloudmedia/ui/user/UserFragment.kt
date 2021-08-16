@@ -34,13 +34,19 @@ class UserFragment : BaseFragment() {
                 showToast(t.responseStatus.responseCode)
             }
         })
-
+        userViewModel.userRequest.logOutData.observe(viewLifecycleOwner) {
+            if (it.responseStatus.isSuccess) {
+                binding.userName.text = null
+            } else {
+                showToast(it.responseStatus.responseCode)
+            }
+        }
         binding.login.setOnClickListener {
             userViewModel.userRequest.requestLogin(this.getBaseActivity())
         }
 
         binding.logout.setOnClickListener {
-            binding.userName.text = null
+            userViewModel.userRequest.requestLoginOut()
         }
     }
 

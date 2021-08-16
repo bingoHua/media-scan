@@ -35,7 +35,7 @@
                 -->
                 <data
                     android:host="com.wt.cloudmedia"
-                    android:path="/i7UPSEWLGX062IV6eE2gx0E0T1M="
+                    android:path="/VW4EuCNYIAzuxIU1vv9HP/t0QPg="
                     android:scheme="msauth" />
             </intent-filter>
         </activity>

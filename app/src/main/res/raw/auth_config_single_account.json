@@ -1,7 +1,7 @@
 {
   "client_id" : "d985f794-0720-4351-924c-a93994834ae4",
   "authorization_user_agent" : "DEFAULT",
-  "redirect_uri" : "msauth://com.wt.cloudmedia/i7UPSEWLGX062IV6eE2gx0E0T1M%3D",
+  "redirect_uri" : "msauth://com.wt.cloudmedia/VW4EuCNYIAzuxIU1vv9HP%2Ft0QPg%3D",
   "account_mode" : "SINGLE",
   "broker_redirect_uri_registered": true,
   "authorities" : [

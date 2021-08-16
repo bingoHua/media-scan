@@ -28,28 +28,37 @@ object LoginService {
             if (::mSingleAccountApp.isInitialized) {
                 emitter.onSuccess(mSingleAccountApp)
             } else {
-                mSingleAccountApp = PublicClientApplication.createSingleAccountPublicClientApplication(
-                    CloudMediaApplication.instance(),
-                    R.raw.auth_config_single_account)
+                mSingleAccountApp =
+                    PublicClientApplication.createSingleAccountPublicClientApplication(
+                        CloudMediaApplication.instance(),
+                        R.raw.auth_config_single_account
+                    )
                 emitter.onSuccess(mSingleAccountApp)
             }
         })
 
     private fun slienceLogin(mSingleAccountApp: ISingleAccountPublicClientApplication): Observable<IAuthenticationResult> {
         return Observable.create(ObservableOnSubscribe<IAccount> { emitter ->
-            emitter.onNext(mSingleAccountApp.currentAccount?.currentAccount) })
-            .flatMap { t ->
-                Observable.create { emitter ->
-                    t?.also {
-                        emitter.onNext(mSingleAccountApp.acquireTokenSilent(getScopes(), it.authority))
-                    }?.run {
-                        emitter.onComplete()
-                    }
+            if (mSingleAccountApp.currentAccount?.currentAccount == null) {
+                emitter.onComplete()
+            } else {
+                emitter.onNext(mSingleAccountApp.currentAccount?.currentAccount)
+            }
+        }).flatMap { t ->
+            Observable.create { emitter ->
+                t?.also {
+                    emitter.onNext(mSingleAccountApp.acquireTokenSilent(getScopes(), it.authority))
+                }?.run {
+                    emitter.onComplete()
                 }
             }
+        }
     }
 
-    private fun bigLogin(mSingleAccountApp: ISingleAccountPublicClientApplication, activity: Activity): Observable<IAuthenticationResult> {
+    private fun bigLogin(
+        mSingleAccountApp: ISingleAccountPublicClientApplication,
+        activity: Activity
+    ): Observable<IAuthenticationResult> {
         return Observable.create { emitter ->
             mSingleAccountApp.signIn(activity, null, getScopes(), object : AuthenticationCallback {
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
@@ -92,25 +101,31 @@ object LoginService {
                     } else if (exception is MsalServiceException) {
                         result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
                         /* Exception when communicating with the STS, likely config issue */
+                    } else {
+                        result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
                     }
                 }
             })
     }
 
-    fun loginOut() {
-        mSingleAccountApp?.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
-            override fun onSignOut() {
-            }
+    fun loginOut(result: DataResult.Result<Any>) {
+        if (::mSingleAccountApp.isInitialized) {
+            mSingleAccountApp.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
+                override fun onSignOut() {
+                    result.onResult(DataResult(null, ResponseStatus(OK.toString(), true)))
+                }
 
-            override fun onError(exception: MsalException) {
-            }
-
-        })
+                override fun onError(exception: MsalException) {
+                    result.onResult(DataResult(null, ResponseStatus(exception.message, false)))
+                }
+            })
+        }
     }
 
     fun getUserName(): MutableLiveData<String> {
         val userName = MutableLiveData<String>()
-        mSingleAccountApp?.getCurrentAccountAsync(object : ISingleAccountPublicClientApplication.CurrentAccountCallback {
+        mSingleAccountApp?.getCurrentAccountAsync(object :
+            ISingleAccountPublicClientApplication.CurrentAccountCallback {
             override fun onAccountLoaded(activeAccount: IAccount?) {
                 userName.value = activeAccount?.username
             }
@@ -139,6 +154,7 @@ object LoginService {
             "Files.ReadWrite",
             "Files.ReadWrite.All",
             "Files.ReadWrite.Selected",
-            "Files.ReadWrite.AppFolder")
+            "Files.ReadWrite.AppFolder"
+        )
     }
 }
