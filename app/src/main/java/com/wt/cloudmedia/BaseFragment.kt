@@ -2,33 +2,66 @@ package com.wt.cloudmedia
 
 import android.app.Activity
 import android.app.Application
+import android.app.Dialog
 import android.widget.Toast
+import androidx.annotation.UiThread
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.wt.cloudmedia.common.ui.LoadingDialog
 
 open class BaseFragment : Fragment() {
 
     private var mFragmentProvider: ViewModelProvider? = null
     private var mApplicationProvider: ViewModelProvider? = null
+    private var loadingDialog:LoadingDialog? = null
 
-    fun getBaseActivity(): BaseActivity {
+    protected fun getBaseActivity(): BaseActivity {
         return activity as BaseActivity
     }
 
-    fun getMediaApplication(): CloudMediaApplication {
+    protected fun getMediaApplication(): CloudMediaApplication {
         return getBaseActivity().getMediaApplication()
     }
 
-    fun showToast(message: String) {
+    protected fun showToast(message: String) {
         Toast.makeText(this.context, message, Toast.LENGTH_SHORT).show()
     }
+
+    @UiThread
+    protected fun showLoading(cancelable: Boolean) {
+        if (fragmentManager?.isDestroyed != false) {
+            return
+        }
+        loadingDialog?:run {
+            context?.let {
+                loadingDialog = LoadingDialog()
+                loadingDialog
+            }
+        }?.also {
+          if (!it.isAdded) {
+              it.isCancelable = cancelable
+              it.show(requireFragmentManager(), FRAGMENT_LOADING_DIALOG)
+          }
+        }
+    }
+
+    @UiThread
+    protected fun hideLoading() {
+        loadingDialog?.let {
+            if (it.isAdded) {
+                it.dismiss()
+            }
+        }
+    }
+
     protected open fun <T : ViewModel?> getApplicationScopeViewModel(modelClass: Class<T>): T {
         if (mApplicationProvider == null) {
             mApplicationProvider = ViewModelProvider(
-                getBaseActivity().getMediaApplication(), getApplicationFactory(getBaseActivity()))
+                getBaseActivity().getMediaApplication(), getApplicationFactory(getBaseActivity())
+            )
         }
-        return mApplicationProvider?.get(modelClass)?:throw Exception()
+        return mApplicationProvider?.get(modelClass) ?: throw Exception()
     }
 
     private fun getApplicationFactory(activity: Activity): ViewModelProvider.Factory {
@@ -38,14 +71,18 @@ open class BaseFragment : Fragment() {
     }
 
     private fun checkActivity(fragment: Fragment) {
-       fragment.activity ?: throw java.lang.IllegalStateException("Can't create ViewModelProvider for detached fragment")
+        fragment.activity
+            ?: throw java.lang.IllegalStateException("Can't create ViewModelProvider for detached fragment")
     }
 
     private fun checkApplication(activity: Activity): Application {
         return activity.application
-            ?: throw IllegalStateException("Your activity/fragment is not yet attached to "
-                    + "Application. You can't request ViewModel before onCreate call.")
+            ?: throw IllegalStateException(
+                "Your activity/fragment is not yet attached to "
+                        + "Application. You can't request ViewModel before onCreate call."
+            )
     }
+
     //TODO tip 1: DataBinding 严格模式（详见 DataBindingFragment - - - - - ）：
     // 将 DataBinding 实例限制于 base 页面中，默认不向子类暴露，
     // 通过这样的方式，来彻底解决 视图实例 null 安全的一致性问题，
@@ -63,6 +100,10 @@ open class BaseFragment : Fragment() {
         mFragmentProvider?.let {
             return it.get(modelClass)
         } ?: throw Exception()
+    }
+
+    companion object {
+        private const val FRAGMENT_LOADING_DIALOG = "fragment_loading_dialog"
     }
 
 }

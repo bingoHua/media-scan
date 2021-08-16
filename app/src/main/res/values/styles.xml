@@ -11,5 +11,15 @@
         <!-- Target Android sdk versions < 26 and > 14. -->
         <item name="fontFamily">@font/opensans_font</item>
     </style>
+
+    <style name="dialog_loading" parent="@android:style/Theme.Dialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
     <style name="AppTheme.OverlapSystemBar" parent="Base.AppTheme" />
 </resources>

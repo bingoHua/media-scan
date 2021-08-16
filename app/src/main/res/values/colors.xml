@@ -17,4 +17,6 @@
     <drawable name="completedTaskBackground">#CCCCCC</drawable>
 
     <drawable name="touchFeedback">#CFD8DC</drawable>
+
+    <color name="transparent">#00000000</color>
 </resources>

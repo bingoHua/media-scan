@@ -28,24 +28,30 @@ class UserFragment : BaseFragment() {
         super.onActivityCreated(savedInstanceState)
 
         userViewModel.userRequest.userLiveData.observe(viewLifecycleOwner, { t ->
+            hideLoading()
             if (t.responseStatus.isSuccess) {
                 binding.userName.text = t.result.account.username
             } else {
                 showToast(t.responseStatus.responseCode)
             }
         })
+
         userViewModel.userRequest.logOutData.observe(viewLifecycleOwner) {
+            hideLoading()
             if (it.responseStatus.isSuccess) {
                 binding.userName.text = null
             } else {
                 showToast(it.responseStatus.responseCode)
             }
         }
+
         binding.login.setOnClickListener {
+            showLoading(false)
             userViewModel.userRequest.requestLogin(this.getBaseActivity())
         }
 
         binding.logout.setOnClickListener {
+            showLoading(false)
             userViewModel.userRequest.requestLoginOut()
         }
     }
