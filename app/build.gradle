@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId "com.wt.cloudmedia"
-        minSdkVersion 29
+        minSdkVersion 23
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"

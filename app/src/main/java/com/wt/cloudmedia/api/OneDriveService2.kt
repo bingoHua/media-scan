@@ -35,7 +35,7 @@ class OneDriveService2 constructor(private val appExecutors: AppExecutors) {
     }
 
     private fun processItems(result: DataResult.Result<Movie>, client: IGraphServiceClient) {
-        val children = client.me().drive().root().itemWithPath("video").children().buildRequest().get()
+        val children = client.me().drive().root().itemWithPath("aria").children().buildRequest().get()
         with(children.currentPage) {
             this.forEach {
                 if (it.folder != null) {

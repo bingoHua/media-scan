@@ -9,4 +9,5 @@
     <string name="list_title">All Video List</string>
     <string name="recent_title">Recent Video List</string>
     <string name="user_title">User</string>
+    <string name="video_fetching">fetching video</string>
 </resources>

@@ -76,6 +76,7 @@ class MainFragment : BaseFragment() {
                 adapter?.addItems(it.result)
             }
         }
+        viewModel.dataRequest.launchService(requireContext())
     }
 
     companion object {
